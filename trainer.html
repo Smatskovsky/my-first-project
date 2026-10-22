@@ -1,1 +1,113 @@
 <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Видеотренажёр</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #111;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #videoContainer {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+        }
+        video {
+            width: 100%;
+            border-radius: 8px;
+            background: #000;
+        }
+        #choices {
+            display: none; /* Скрыто, пока видео не закончится */
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+        #choices button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 18px;
+            background: #2a2a2a;
+            color: #fff;
+            border: 2px solid #444;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #choices button:hover {
+            background: #3a3a3a;
+            border-color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Выбери свой путь</h1>
+
+    <div id="videoContainer">
+        <!-- 
+          ВАЖНО: замени ТВОЙ_НИК и НАЗВАНИЕ_РЕПО на свои.
+          Ссылка должна быть на raw-файл из твоего репозитория.
+        -->
+        <video id="myVideo" controls preload="auto">
+            <source id="videoSource" 
+                    src="https://raw.githubusercontent.com/Smatskovsky/my-first-project/main/videos/start.mp4" 
+                    type="video/mp4">
+        </video>
+    </div>
+
+    <div id="choices">
+        <button onclick="choose('a')">Вариант А</button>
+        <button onclick="choose('b')">Вариант Б</button>
+        <button onclick="choose('c')">Вариант В</button>
+    </div>
+
+    <script>
+        const video = document.getElementById('myVideo');
+        const videoSource = document.getElementById('videoSource');
+        const choicesDiv = document.getElementById('choices');
+
+        // Базовый URL для видео (замени на свой!)
+        const BASE_URL = "https://raw.githubusercontent.com/Smatskovsky/my-first-project/Proba/videos/";
+
+        // Когда видео заканчивается — показываем кнопки
+        video.addEventListener('ended', function() {
+            choicesDiv.style.display = 'block';
+        });
+
+        // Функция выбора
+        function choose(option) {
+            // 1. Скрываем кнопки
+            choicesDiv.style.display = 'none';
+
+            // 2. Определяем, какое видео загрузить следующим
+            let nextVideo;
+            if (option === 'a') {
+                nextVideo = 'choice-a.mp4';
+            } else if (option === 'b') {
+                nextVideo = 'choice-b.mp4';
+            } else {
+                nextVideo = 'choice-c.mp4'; // если добавишь третье видео
+            }
+
+            // 3. Меняем источник видео и запускаем
+            // ВАЖНО: для <source> внутри <video> смена src не всегда срабатывает сразу.
+            // Надёжный способ — вызвать load() после смены.
+            videoSource.src = BASE_URL + nextVideo;
+            video.load();
+            video.play();
+        }
+    </script>
+
+</body>
+</html>

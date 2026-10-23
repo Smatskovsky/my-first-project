@@ -50,21 +50,20 @@
             padding: 14px;
             margin: 8px 0;
             font-size: 16px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.39);
             color: #fff;
             border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 8px;
             cursor: pointer;
-            transition: opacity 0.3s, transform 0.3s;
+            transition: background 0.2s, border-color 0.2s;
             backdrop-filter: blur(4px);
         }
 
         #choices button:hover {
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(70, 66, 66, 0.5);
             border-color: #fff;
         }
 
-        /* Класс для плавного исчезновения нажатой кнопки */
         #choices button.removing {
             opacity: 0;
             transform: scale(0.9);
@@ -74,61 +73,174 @@
 </head>
 <body>
 
-    <h1>Выбери свой путь</h1>
+    <h1>Сделай выбор</h1>
 
     <div id="videoContainer">
         <video id="myVideo" controls preload="auto">
-            <source id="videoSource"
-                    src="videos/start.mp4"
-                    type="video/mp4">
+            <source id="videoSource" src="" type="video/mp4">
         </video>
 
-        <div id="choices">
-            <button onclick="choose('a', this)">Открыть книгу</button>
-            <button onclick="choose('b', this)">Убрать книгу</button>
-            <button onclick="choose('c', this)">Перевернуть книгу</button>
-        </div>
+        <div id="choices"></div>
     </div>
 
     <script>
+        // ============================================================
+        // ДЕРЕВО СЦЕНАРИЕВ
+        // ============================================================
+        
+        const SCENARIO = {
+            // 1. Стартовое видео
+            "start.mp4": {
+                video: "start.mp4",
+                choices: [
+                    { label: "Положить книгу", next: "choice-p.mp4" },
+                    { label: "Положить блокнот", next: "pb.mp4" }
+                ]
+            },
+
+            // 2. Положили книгу
+            "choice-p.mp4": {
+                video: "choice-p.mp4",
+                choices: [
+                    { label: "Открыть книгу", next: "choice-a.mp4" },
+                    { label: "Убрать книгу", next: "choice-y.mp4" } // Убрать книгу -> видео убирания
+                ]
+            },
+
+            // 3. Убрали книгу (проигрывается и авто-рестарт)
+            "choice-y.mp4": {
+                video: "choice-y.mp4",
+                choices: [],
+                autoRestart: true // <--- Автоматический возврат на start.mp4
+            },
+
+            // 4. Открыли книгу
+            "choice-a.mp4": {
+                video: "choice-a.mp4",
+                choices: [
+                    { label: "Закрыть книгу", next: "choice-z.mp4" }
+                ]
+            },
+
+            // 5. Закрыли открытую книгу
+            "choice-z.mp4": {
+                video: "choice-z.mp4",
+                choices: [
+                    { label: "Открыть книгу", next: "choice-a.mp4" },
+                    { label: "Убрать книгу", next: "choice-y.mp4" } // Убрать книгу -> видео убирания
+                ]
+            },
+
+            // 6. Положили блокнот
+            "pb.mp4": {
+                video: "pb.mp4",
+                choices: [
+                    { label: "Открыть блокнот", next: "ob.mp4" },
+                    { label: "Убрать блокнот", next: "yb.mp4" } // Убрать блокнот -> видео убирания
+                ]
+            },
+
+            // 7. Открыли блокнот
+            "ob.mp4": {
+                video: "ob.mp4",
+                choices: [
+                    { label: "Закрыть блокнот", next: "zb.mp4" }
+                ]
+            },
+
+            // 8. Закрыли блокнот
+            "zb.mp4": {
+                video: "zb.mp4",
+                choices: [
+                    { label: "Открыть блокнот", next: "ob.mp4" },
+                    { label: "Убрать блокнот", next: "yb.mp4" } // Убрать блокнот -> видео убирания
+                ]
+            },
+
+            // 9. Убрали блокнот (проигрывается и авто-рестарт)
+            "yb.mp4": {
+                video: "yb.mp4",
+                choices: [],
+                autoRestart: true // <--- Автоматический возврат на start.mp4
+            }
+        };
+
+        const START_VIDEO = "start.mp4";
+        const BASE_URL = "videos/";
+
+        // ============================================================
+        // ЛОГИКА (работает автоматически, менять не нужно)
+        // ============================================================
+
         const video = document.getElementById('myVideo');
         const videoSource = document.getElementById('videoSource');
         const choicesDiv = document.getElementById('choices');
-        const BASE_URL = "videos/";
 
-        // Когда видео заканчивается — показываем кнопки снова
-        video.addEventListener('ended', function() {
-            // Возвращаем всем кнопкам видимость (снимаем класс removing)
-            const buttons = choicesDiv.querySelectorAll('button');
-            buttons.forEach(btn => btn.classList.remove('removing'));
+        let currentVideo = null;
 
-            // Показываем блок с кнопками
-            choicesDiv.style.display = 'block';
-        });
+        function loadVideo(videoName) {
+            currentVideo = videoName;
+            const scene = SCENARIO[videoName];
 
-        // Функция выбора
-        function choose(option, button) {
-            // 1. Плавно скрываем НАЖАТУЮ кнопку (только визуально)
-            button.classList.add('removing');
-
-            // 2. Скрываем весь блок, пока идёт новое видео
-            choicesDiv.style.display = 'none';
-
-            // 3. Определяем следующее видео
-            let nextVideo;
-            if (option === 'a') {
-                nextVideo = 'choice-a.mp4';
-            } else if (option === 'b') {
-                nextVideo = 'choice-b.mp4';
-            } else {
-                nextVideo = 'choice-c.mp4';
+            if (!scene) {
+                console.error('Видео не найдено в сценарии:', videoName);
+                return;
             }
 
-            // 4. Загружаем и запускаем новое видео
-            videoSource.src = BASE_URL + nextVideo;
+            choicesDiv.style.display = 'none';
+
+            videoSource.src = BASE_URL + scene.video;
             video.load();
             video.play();
         }
+
+        function showChoices() {
+            const scene = SCENARIO[currentVideo];
+            if (!scene) return;
+
+            // Если у видео стоит autoRestart: true — сразу запускаем старт
+            if (scene.autoRestart) {
+                setTimeout(() => {
+                    restart();
+                }, 300); // небольшая задержка, чтобы видео не оборвалось резко
+                return;
+            }
+
+            // Если кнопок нет (и это не авто-рестарт) — ничего не показываем
+            if (!scene.choices || scene.choices.length === 0) {
+                return;
+            }
+
+            // Рисуем кнопки
+            choicesDiv.innerHTML = '';
+            scene.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.textContent = choice.label;
+                btn.onclick = () => choose(choice.next, btn);
+                choicesDiv.appendChild(btn);
+            });
+
+            choicesDiv.style.display = 'block';
+        }
+
+        function choose(nextVideo, button) {
+            button.classList.add('removing');
+
+            setTimeout(() => {
+                loadVideo(nextVideo);
+            }, 300);
+        }
+
+        video.addEventListener('ended', function() {
+            showChoices();
+        });
+
+        function restart() {
+            loadVideo(START_VIDEO);
+        }
+
+        // Запуск
+        loadVideo(START_VIDEO);
     </script>
 
 </body>

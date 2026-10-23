@@ -96,33 +96,25 @@
         const choicesDiv = document.getElementById('choices');
         const BASE_URL = "videos/";
 
-        // Когда видео заканчивается — показываем оставшиеся кнопки
+        // Когда видео заканчивается — показываем кнопки снова
         video.addEventListener('ended', function() {
-            // Показываем блок, только если в нём ещё есть кнопки
-            if (choicesDiv.children.length > 0) {
-                choicesDiv.style.display = 'block';
-            }
+            // Возвращаем всем кнопкам видимость (снимаем класс removing)
+            const buttons = choicesDiv.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('removing'));
+
+            // Показываем блок с кнопками
+            choicesDiv.style.display = 'block';
         });
 
         // Функция выбора
         function choose(option, button) {
-            // 1. Плавно скрываем НАЖАТУЮ кнопку
+            // 1. Плавно скрываем НАЖАТУЮ кнопку (только визуально)
             button.classList.add('removing');
 
-            // 2. Через 300 мс удаляем её из DOM навсегда
-            setTimeout(() => {
-                button.remove();
-
-                // Если кнопок не осталось — скрываем блок
-                if (choicesDiv.children.length === 0) {
-                    choicesDiv.style.display = 'none';
-                }
-            }, 300);
-
-            // 3. Скрываем блок, пока идёт новое видео
+            // 2. Скрываем весь блок, пока идёт новое видео
             choicesDiv.style.display = 'none';
 
-            // 4. Определяем следующее видео
+            // 3. Определяем следующее видео
             let nextVideo;
             if (option === 'a') {
                 nextVideo = 'choice-a.mp4';
@@ -132,7 +124,7 @@
                 nextVideo = 'choice-c.mp4';
             }
 
-            // 5. Загружаем и запускаем новое видео
+            // 4. Загружаем и запускаем новое видео
             videoSource.src = BASE_URL + nextVideo;
             video.load();
             video.play();

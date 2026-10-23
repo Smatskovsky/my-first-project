@@ -14,43 +14,55 @@
             align-items: center;
             padding: 20px;
         }
-       #videoContainer {
-    position: relative;
-    width: 100%;
-    max-width: 360px;   /* ширина портретного видео */
-    margin: 0 auto;     /* центрируем */
-}
 
-video {
-    width: 100%;
-    aspect-ratio: 9 / 16;   /* соотношение сторон 9:16 */
-    object-fit: contain;     /* видео вписывается, без обрезки */
-    border-radius: 12px;
-    background: #000;
-}
-        #choices {
-            display: none; /* Скрыто, пока видео не закончится */
-            margin-top: 20px;
+        #videoContainer {
+            position: relative;
             width: 100%;
-            max-width: 800px;
-            text-align: center;
+            max-width: 360px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 12px;
         }
+
+        video {
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #000;
+            display: block;
+        }
+
+        /* Кнопки поверх видео */
+        #choices {
+            display: none;
+            position: absolute;
+            bottom: 60px;      /* выше панели управления видео */
+            left: 0;
+            right: 0;
+            padding: 0 16px;
+            text-align: center;
+            z-index: 10;
+        }
+
         #choices button {
             display: block;
             width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            font-size: 18px;
-            background: #2a2a2a;
+            padding: 14px;
+            margin: 8px 0;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.7);
             color: #fff;
-            border: 2px solid #444;
+            border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 8px;
             cursor: pointer;
             transition: 0.2s;
+            backdrop-filter: blur(4px);
         }
+
         #choices button:hover {
-            background: #3a3a3a;
-            border-color: #888;
+            background: rgba(0, 0, 0, 0.9);
+            border-color: #fff;
         }
     </style>
 </head>
@@ -59,21 +71,18 @@ video {
     <h1>Выбери свой путь</h1>
 
     <div id="videoContainer">
-        <!-- 
-          ВАЖНО: замени ТВОЙ_НИК и НАЗВАНИЕ_РЕПО на свои.
-          Ссылка должна быть на raw-файл из твоего репозитория.
-        -->
         <video id="myVideo" controls preload="auto">
-            <source id="videoSource" 
-                    src="C:\Users\Masko\Desktop\my-first-project\videos\start.mp4"
+            <source id="videoSource"
+                    src="videos/start.mp4"
                     type="video/mp4">
         </video>
-    </div>
 
-    <div id="choices">
-        <button onclick="choose('a')">Открыть книгу</button>
-        <button onclick="choose('b')">Убрать книгу</button>
-        <button onclick="choose('c')">Перевернуть книгу</button>
+        <!-- Кнопки теперь ВНУТРИ контейнера видео -->
+        <div id="choices">
+            <button onclick="choose('a')">Открыть книгу</button>
+            <button onclick="choose('b')">Убрать книгу</button>
+            <button onclick="choose('c')">Перевернуть книгу</button>
+        </div>
     </div>
 
     <script>
@@ -81,7 +90,7 @@ video {
         const videoSource = document.getElementById('videoSource');
         const choicesDiv = document.getElementById('choices');
 
-        // Базовый URL для видео (замени на свой!)
+        // Относительный путь к папке с видео
         const BASE_URL = "videos/";
 
         // Когда видео заканчивается — показываем кнопки
@@ -91,22 +100,17 @@ video {
 
         // Функция выбора
         function choose(option) {
-            // 1. Скрываем кнопки
             choicesDiv.style.display = 'none';
 
-            // 2. Определяем, какое видео загрузить следующим
             let nextVideo;
             if (option === 'a') {
                 nextVideo = 'choice-a.mp4';
             } else if (option === 'b') {
                 nextVideo = 'choice-b.mp4';
             } else {
-                nextVideo = 'choice-c.mp4'; // если добавишь третье видео
+                nextVideo = 'choice-c.mp4';
             }
 
-            // 3. Меняем источник видео и запускаем
-            // ВАЖНО: для <source> внутри <video> смена src не всегда срабатывает сразу.
-            // Надёжный способ — вызвать load() после смены.
             videoSource.src = BASE_URL + nextVideo;
             video.load();
             video.play();

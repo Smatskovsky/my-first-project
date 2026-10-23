@@ -14,16 +14,20 @@
             align-items: center;
             padding: 20px;
         }
-        #videoContainer {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-        }
-        video {
-            width: 100%;
-            border-radius: 8px;
-            background: #000;
-        }
+       #videoContainer {
+    position: relative;
+    width: 100%;
+    max-width: 360px;   /* ширина портретного видео */
+    margin: 0 auto;     /* центрируем */
+}
+
+video {
+    width: 100%;
+    aspect-ratio: 9 / 16;   /* соотношение сторон 9:16 */
+    object-fit: contain;     /* видео вписывается, без обрезки */
+    border-radius: 12px;
+    background: #000;
+}
         #choices {
             display: none; /* Скрыто, пока видео не закончится */
             margin-top: 20px;
@@ -61,15 +65,15 @@
         -->
         <video id="myVideo" controls preload="auto">
             <source id="videoSource" 
-                    src="https://raw.githubusercontent.com/Smatskovsky/my-first-project/main/videos/start.mp4" 
+                    src="C:\Users\Masko\Desktop\my-first-project\videos\start.mp4"
                     type="video/mp4">
         </video>
     </div>
 
     <div id="choices">
-        <button onclick="choose('a')">Вариант А</button>
-        <button onclick="choose('b')">Вариант Б</button>
-        <button onclick="choose('c')">Вариант В</button>
+        <button onclick="choose('a')">Открыть книгу</button>
+        <button onclick="choose('b')">Убрать книгу</button>
+        <button onclick="choose('c')">Перевернуть книгу</button>
     </div>
 
     <script>
@@ -78,7 +82,7 @@
         const choicesDiv = document.getElementById('choices');
 
         // Базовый URL для видео (замени на свой!)
-        const BASE_URL = "https://raw.githubusercontent.com/Smatskovsky/my-first-project/Proba/videos/";
+        const BASE_URL = "videos/";
 
         // Когда видео заканчивается — показываем кнопки
         video.addEventListener('ended', function() {
